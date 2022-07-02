@@ -28,7 +28,7 @@ class Sts:
         csrf = str(soup.find('input'))[-59:-3]
         params.update({'_csrf': csrf})
         session.post(url, params)
-
+        self.result = []
         return
 
     def take(self):
@@ -38,30 +38,36 @@ class Sts:
         for td in soup.find_all('tr'):
             href = self.url + str(td.find('a'))[9:39]
             info = td.get_text('|').split('|')
+            if info[0][:3] != 'RUD':
+                continue
             info.pop(-1)
             info.extend(href.split())
             time = datetime.datetime.now()
             info.extend([str(time).split()])
             self.result.append(info)
-        self.result.pop(0)
-        self.result.pop(0)
         return
 
     def record_db(self, dis):
         for info in self.result:
-            base_dict = {'id_sts': info[3], 'date': info[5], 'link': info[4], 'props': info[:2]}
+            base_dict = {'id_sts': info[3], 'date': info[5], 'link': info[4], 'props': info[:3]}
             print(dis.insert_one(base_dict).inserted_id, '- успешно занесено в базу')
+        return
+
+    def close(self):
+        self.session.cookies.clear_session_cookies()
+        self.session.get(self.url + 'private/default/logout')
         return
 
 
 if __name__ == '__main__':
-    sts = Sts()
     item = user_login_password.find({})
-    for r in range(1):
+    for r in range(2):
         try:
             user = [*item[r].values()]
-            sts.auth(user[1], user[2])
-            sts.take()
-            sts.record_db(discharge)
+            r = Sts()
+            r.auth(user[1], user[2])
+            r.take()
+            r.record_db(discharge)
+            r.close()
         except:
-            break
+            continue
