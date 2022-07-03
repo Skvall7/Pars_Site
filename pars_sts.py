@@ -1,6 +1,7 @@
 import requests
 import datetime
 import pymongo
+import os
 from bs4 import BeautifulSoup
 
 client = pymongo.MongoClient('localhost', 27017)
@@ -12,6 +13,9 @@ user_login_password = base['user_login_password']
 class Sts:
     url = 'http://10.78.78.251/'
     session = requests.session()
+    download = '/my/temp/'
+    if not os.path.isdir(download):
+        os.mkdir(download)
     result = []
 
     def auth(self, login, password):
@@ -36,7 +40,7 @@ class Sts:
         page = session.get(self.url + 'private/cards-issue/list?form=30&per-page=100')
         soup = BeautifulSoup(page.text, 'html.parser')
         for td in soup.find_all('tr'):
-            href = self.url + str(td.find('a'))[9:39]
+            href = self.url + str(td.find('a', class_="btn"))[87:125]
             info = td.get_text('|').split('|')
             if info[0][:3] != 'RUD':
                 continue
@@ -45,6 +49,12 @@ class Sts:
             time = datetime.datetime.now()
             info.extend([str(time).split()])
             self.result.append(info)
+            pdf = session.get(href)
+            if not os.path.isdir(self.download + str(time)[0:10]):
+                os.mkdir(self.download + str(time)[0:10])
+            with open(f'{self.download}{str(time)[0:10]}/{info[3]}.pdf', 'wb') as file:
+                file.write(pdf.content)
+                print(f'{self.download}{str(time)[0:10]}/{info[3]}.pdf - файл сохранен')
         return
 
     def record_db(self, dis):
@@ -61,7 +71,7 @@ class Sts:
 
 if __name__ == '__main__':
     item = user_login_password.find({})
-    for r in range(2):
+    for r in range(1):
         try:
             user = [*item[r].values()]
             r = Sts()
