@@ -71,7 +71,7 @@ class Sts:
 
 if __name__ == '__main__':
     item = user_login_password.find({})
-    for r in range(1):
+    for r in range(100):
         try:
             user = [*item[r].values()]
             r = Sts()
