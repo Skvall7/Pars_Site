@@ -14,7 +14,7 @@ class Sts:
     url = 'http://10.78.78.251/'
     session = requests.session()
     download = '/my/temp/'
-    if not os.path.isdir(download):
+    if not (os.path.isdir(download)):
         os.mkdir(download)
     result = []
 
@@ -41,16 +41,17 @@ class Sts:
         soup = BeautifulSoup(page.text, 'html.parser')
         for td in soup.find_all('tr'):
             href = self.url + str(td.find('a', class_="btn"))[87:125]
+            href2 = self.url + str(td.find('a'))[10:39]
             info = td.get_text('|').split('|')
             if info[0][:3] != 'RUD':
                 continue
             info.pop(-1)
-            info.extend(href.split())
+            info.extend(href2.split())
             time = datetime.datetime.now()
             info.extend([str(time).split()])
             self.result.append(info)
             pdf = session.get(href)
-            if not os.path.isdir(self.download + str(time)[0:10]):
+            if not (os.path.isdir(self.download + str(time)[0:10])):
                 os.mkdir(self.download + str(time)[0:10])
             with open(f'{self.download}{str(time)[0:10]}/{info[3]}.pdf', 'wb') as file:
                 file.write(pdf.content)
