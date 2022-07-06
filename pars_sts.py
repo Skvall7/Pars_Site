@@ -41,21 +41,21 @@ class Sts:
         soup = BeautifulSoup(page.text, 'html.parser')
         for td in soup.find_all('tr'):
             href = self.url + str(td.find('a', class_="btn"))[87:125]
-            href2 = self.url + str(td.find('a'))[10:39]
             info = td.get_text('|').split('|')
             if info[0][:3] != 'RUD':
                 continue
             info.pop(-1)
-            info.extend(href2.split())
             time = datetime.datetime.now()
-            info.extend([str(time).split()])
-            self.result.append(info)
             pdf = session.get(href)
             if not (os.path.isdir(self.download + str(time)[0:10])):
                 os.mkdir(self.download + str(time)[0:10])
-            with open(f'{self.download}{str(time)[0:10]}/{info[3]}.pdf', 'wb') as file:
+            href2 = f'{self.download}{str(time)[0:10]}/{info[3]}.pdf'
+            with open(href2, 'wb') as file:
                 file.write(pdf.content)
-                print(f'{self.download}{str(time)[0:10]}/{info[3]}.pdf - файл сохранен')
+                print(f'{href2} - файл сохранен')
+            info.extend(href2.split())
+            info.extend([str(time).split()])
+            self.result.append(info)
         return
 
     def record_db(self, dis):
