@@ -67,10 +67,10 @@ class Sts:
                 self.result.append(info)
         return
 
-    def record_db(self, dis):
+    def record_db(self, dis, user_id):
         # Запись результата в базу
         for info in self.result:
-            base_dict = {'id_sts': info[3], 'date': info[5], 'link': info[4], 'props': info[:3]}
+            base_dict = {'id_sts': info[3], 'date': info[5], 'link': info[4], 'props': info[:3], 'id_sts_usr': user_id}
             print(dis.insert_one(base_dict).inserted_id, '- успешно занесено в базу')
         return
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
             sts = Sts()
             sts.auth(user[1], user[2])
             sts.take()
-            sts.record_db(discharge)
+            sts.record_db(discharge, user[0])
             sts.close()
         except:
             continue

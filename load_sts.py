@@ -82,16 +82,13 @@ class Sts:
 
 
 if __name__ == '__main__':
-    item = user_login_password.find({})
-    cursor = discharge.find()
-    count = discharge.count_documents({})
-    user_item = [*cursor]
-    for r in range(1):        # Максимальное количество аккаунтов
+    for r in range(len([*user_login_password.find({})])):
         sts = Sts()
-        user = [*item][r]
+        user = [*user_login_password.find({})][r]
+        user_item = [*discharge.find({'id_sts_usr': {'$eq': user['_id']}})]
         if sts.auth(user['user'], user['password']):
             continue
-        for number in range(count):
+        for number in range(len(user_item)):
             item = user_item[number]
             print(item['id_sts'])
             sts.load(item['id_sts'], item['link'])
