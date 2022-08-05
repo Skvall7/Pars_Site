@@ -19,6 +19,7 @@ class Sts:
     result = []
 
     def auth(self, login, password):
+        # Авторизация на сайте СТС
         params = {'_csrf': '',
                   'LoginForm[username]': login,
                   'LoginForm[password]': password,
@@ -33,13 +34,16 @@ class Sts:
         params.update({'_csrf': csrf})
         session.post(url, params)
         self.result = []
+        print(login, password)
         return
 
     def take(self):
+        # Получение данных из СТС
         session = self.session
         page = session.get(self.url + f'private/cards-issue/list?form=30&per-page=100&page=1')
         check = BeautifulSoup(page.text, 'html.parser')
-        count = int(BeautifulSoup(str(check.find_all('div', class_='summary')), 'html.parser').get_text()[-5:-2].strip())
+        check_str = str(check.find_all('div', class_='summary'))
+        count = int(BeautifulSoup(check_str, 'html.parser').get_text()[-4:-2].strip())
         page_count = (count // 100) + 2
         for page_number in range(1, page_count):
             page = session.get(self.url + f'private/cards-issue/list?form=30&per-page=100&page={page_number}')
@@ -64,12 +68,14 @@ class Sts:
         return
 
     def record_db(self, dis):
+        # Запись результата в базу
         for info in self.result:
             base_dict = {'id_sts': info[3], 'date': info[5], 'link': info[4], 'props': info[:3]}
             print(dis.insert_one(base_dict).inserted_id, '- успешно занесено в базу')
         return
 
     def close(self):
+        # Завершение сессии пользователя
         self.session.cookies.clear_session_cookies()
         self.session.get(self.url + 'private/default/logout')
         return
@@ -77,13 +83,13 @@ class Sts:
 
 if __name__ == '__main__':
     item = user_login_password.find({})
-    for r in range(100):
+    for r in range(100):        # Максимальное количество аккаунтов
         try:
             user = [*item[r].values()]
-            r = Sts()
-            r.auth(user[1], user[2])
-            r.take()
-            r.record_db(discharge)
-            r.close()
+            sts = Sts()
+            sts.auth(user[1], user[2])
+            sts.take()
+            sts.record_db(discharge)
+            sts.close()
         except:
             continue
