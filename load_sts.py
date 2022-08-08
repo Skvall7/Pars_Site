@@ -65,13 +65,16 @@ class Sts:
         file_input = chrome.find_element(By.ID, 'receipt')
         file_input.send_keys(file_path)
         if os.path.getsize(file_path) > 1024 * 1024:
-            compress(file_path, file_path, power=3)
-        # chrome.find_element(By.XPATH, "//button[@class='btn btn-default btn-blue send-issue']").click()    # отправка
-        # if os.path.isfile(file_path):     # Удаление файла
-        #     os.remove(file_path)
-        #     print(file_path, 'Файл удален')
-        # else:
-        #     print(file_path, 'Файл отсутствует')
+            new_name = f'{file_path}.tmp'
+            compress(file_path, new_name, power=3)
+            os.remove(file_path)
+            os.rename(new_name, file_path)
+        chrome.find_element(By.XPATH, "//button[@class='btn btn-default btn-blue send-issue']").click()    # отправка
+        if os.path.isfile(file_path):     # Удаление файла
+            os.remove(file_path)
+            print(file_path, 'Файл удален')
+        else:
+            print(file_path, 'Файл отсутствует')
         time.sleep(3)
         return
 
