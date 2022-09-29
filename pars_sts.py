@@ -72,15 +72,15 @@ class Sts:
 
     def verify(self, dis, id_sts):
         # Проверка на количество прошедших дней
-        if not [*dis.find({'id_sts': id_sts})]:     # Проверка на наличие записи в БД
-            return False
         user_item = [*dis.find({'id_sts': id_sts})]
+        if not user_item:     # Проверка на наличие записи в БД
+            return True
         y = int(user_item[-1]['date'][0].split('-')[0])   # Ищет последнюю запись в БД
         m = int(user_item[-1]['date'][0].split('-')[1])
         d = int(user_item[-1]['date'][0].split('-')[2])
         some_date = datetime.datetime(year=y, month=m, day=d)
-        time = datetime.datetime.now()
-        verify_date = time - some_date
+        date = datetime.datetime.now()
+        verify_date = date - some_date
         return verify_date.days > 10        # Если прошло 10 и более дней возвращает True
 
     def record_db(self, dis, user_id):
@@ -104,7 +104,7 @@ if __name__ == '__main__':
             user = [*item[r].values()]
             sts = Sts()
             sts.auth(user[1], user[2])
-            sts.take()
+            sts.take(discharge)
             sts.record_db(discharge, user[0])
             sts.close()
         except:
