@@ -37,7 +37,7 @@ class Sts:
         print(login, password)
         return
 
-    def take(self):
+    def take(self, dis=discharge):
         # Получение данных из СТС
         session = self.session
         page = session.get(self.url + f'private/cards-issue/list?form=30&per-page=100&page=1')
@@ -53,6 +53,9 @@ class Sts:
                 info = td.get_text('|').split('|')
                 if info[0][:3] != 'RUD':
                     continue
+                if not self.verify(dis, info[3]):
+                    print(f'Запись {info[3]} актуальна')
+                    continue
                 info.pop(-1)
                 time = datetime.datetime.now()
                 pdf = session.get(href)
@@ -66,6 +69,19 @@ class Sts:
                 info.extend([str(time).split()])
                 self.result.append(info)
         return
+
+    def verify(self, dis, id_sts):
+        # Проверка на количество прошедших дней
+        if not [*dis.find({'id_sts': id_sts})]:     # Проверка на наличие записи в БД
+            return False
+        user_item = [*dis.find({'id_sts': id_sts})]
+        y = int(user_item[-1]['date'][0].split('-')[0])   # Ищет последнюю запись в БД
+        m = int(user_item[-1]['date'][0].split('-')[1])
+        d = int(user_item[-1]['date'][0].split('-')[2])
+        some_date = datetime.datetime(year=y, month=m, day=d)
+        time = datetime.datetime.now()
+        verify_date = time - some_date
+        return verify_date.days > 10        # Если прошло 10 и более дней возвращает True
 
     def record_db(self, dis, user_id):
         # Запись результата в базу
@@ -88,6 +104,7 @@ if __name__ == '__main__':
             user = [*item[r].values()]
             sts = Sts()
             sts.auth(user[1], user[2])
+            # sts.verify(discharge, 'IKCTT-04279242')
             sts.take()
             sts.record_db(discharge, user[0])
             sts.close()
