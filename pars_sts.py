@@ -104,7 +104,6 @@ if __name__ == '__main__':
             user = [*item[r].values()]
             sts = Sts()
             sts.auth(user[1], user[2])
-            # sts.verify(discharge, 'IKCTT-04279242')
             sts.take()
             sts.record_db(discharge, user[0])
             sts.close()
