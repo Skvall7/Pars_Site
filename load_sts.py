@@ -20,7 +20,7 @@ class Sts:
         options = webdriver.ChromeOptions()
         options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
                              ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36')
-        options.headless = True                 # Браузер откроется в фоновом режиме
+        # options.headless = True                 # Браузер откроется в фоновом режиме
         self.driver = webdriver.Chrome(options=options)
         self.driver.get(self.url)
 
@@ -45,7 +45,22 @@ class Sts:
             chrome.find_element(By.XPATH, "//button[@class='btn btn-default btn-blue']").click()
             print(f'{log} успешно авторизован')
         time.sleep(1)
+        self.notify()
         return
+
+    def notify(self):
+        chrome = self.driver
+        chrome.refresh()
+        try:
+            if chrome.find_element('id', 'mn'):
+                btn = chrome.find_element('id', 'read-btn')
+                btn.click()
+                btn.send_keys(Keys.ENTER)
+                self.notify()
+            else:
+                return
+        finally:
+            return
 
     def load(self, id_sts, pdf):
         chrome = self.driver

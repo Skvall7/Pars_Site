@@ -18,11 +18,10 @@ class Sts:
         os.mkdir(download)
     result = []
 
-    def auth(self, login, password):
-        # Авторизация на сайте СТС
+    def auth(self, login, password):            # Авторизация на сайте СТС
         params = {'_csrf': '',
-                  'LoginForm[username]': login,
-                  'LoginForm[password]': password,
+                  'LoginForm[username]': 'oil@ivanov.ru',       # login,
+                  'LoginForm[password]': 'Ivan12346',       # password,
                   'close-session': 1,
                   'close-not-verification': 1
                   }
@@ -35,7 +34,23 @@ class Sts:
         session.post(url, params)
         self.result = []
         print(login, password)
+        # self.notify()           # Проход по уведомлениям
         return
+
+    # def notify(self):
+    #     url = self.url + 'private/default/index'
+    #     page = self.session.get(url)
+    #     soup = BeautifulSoup(page.text, 'html.parser')
+    #     ntfy = str(soup.find_all('div', {'id': 'mn'}))      # Находим блок с уведомлением
+    #     a = str(BeautifulSoup(ntfy, 'html.parser').find('a', {'data-id': True}))[66:69]     # ИД уведомления
+    #     if ntfy != 'None':
+    #         print('Уведомление')
+    #         m_id = {'messageId': a}
+    #         self.session.post(self.url + 'private/messages/read/', data=m_id)
+    #         print(a)
+    #         return
+    #     print(a)
+    #     return
 
     def take(self, dis=discharge):
         # Получение данных из СТС
@@ -99,13 +114,13 @@ class Sts:
 
 if __name__ == '__main__':
     item = user_login_password.find({})
-    for r in range(100):        # Максимальное количество аккаунтов
+    for r in range(1):        # Максимальное количество аккаунтов
         try:
             user = [*item[r].values()]
             sts = Sts()
             sts.auth(user[1], user[2])
-            sts.take(discharge)
-            sts.record_db(discharge, user[0])
+            # sts.take(discharge)
+            # sts.record_db(discharge, user[0])
             sts.close()
         except:
             continue
