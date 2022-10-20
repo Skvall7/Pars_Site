@@ -49,7 +49,7 @@ class Sts:
         self.notify()
         return
 
-    def notify(self):
+    def notify(self):       # Проверка на всплывающие уведомления
         chrome = self.driver
         chrome.refresh()
         try:
@@ -133,11 +133,9 @@ def base_json_to_dict(input_json):
             if list(item.values())[1] == usr:
                 if dict_check.get(list(item.values())[1], False) is False:
                     dict_check[usr] = [[list(item.values())[2]], [list(item.values())[0]]]
-                    # dict_check[usr][0] = list(item.values())[0]
                 else:
                     dict_check[usr][0].append(list(item.values())[2])
                     dict_check[usr][1].append(list(item.values())[0])
-    # print(dict_check)
     return dict_check
 
 
