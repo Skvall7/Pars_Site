@@ -20,8 +20,8 @@ class Sts:
 
     def auth(self, login, password):            # Авторизация на сайте СТС
         params = {'_csrf': '',
-                  'LoginForm[username]': 'oil@ivanov.ru',       # login,
-                  'LoginForm[password]': 'Ivan12346',       # password,
+                  'LoginForm[username]': login,
+                  'LoginForm[password]': password,
                   'close-session': 1,
                   'close-not-verification': 1
                   }
@@ -114,13 +114,13 @@ class Sts:
 
 if __name__ == '__main__':
     item = user_login_password.find({})
-    for r in range(1):        # Максимальное количество аккаунтов
+    for r in range(100):        # Максимальное количество аккаунтов
         try:
             user = [*item[r].values()]
             sts = Sts()
             sts.auth(user[1], user[2])
-            # sts.take(discharge)
-            # sts.record_db(discharge, user[0])
+            sts.take(discharge)
+            sts.record_db(discharge, user[0])
             sts.close()
         except:
             continue
