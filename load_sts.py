@@ -6,6 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from pdf_compressor.pdf_compressor import compress
+from fake_useragent import UserAgent
 
 client = pymongo.MongoClient('localhost', 27017)
 base = client['sts_db']
@@ -19,9 +20,9 @@ class Sts:
     def __init__(self):
         self.url = 'http://10.78.78.251/'
         options = webdriver.ChromeOptions()
-        options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-                             ' AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36')
-        options.headless = True                 # Браузер откроется в фоновом режиме
+        options.add_argument(f'user-agent={UserAgent().chrome}')        # Если снова будут блочить UserAgent().random
+        # Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.134 Safari/537.36'
+        options.headless = False                 # Браузер откроется в фоновом режиме
         self.driver = webdriver.Chrome(options=options)
         self.driver.get(self.url)
 
@@ -95,7 +96,6 @@ class Sts:
         return
 
     def check_card(self, users_id, base_ids):
-        users_id = list(set(users_id))      # Отфильтровывает одинаковые sts_id
         chrome = self.driver
         iter_id = 0
         for user_id in users_id:
@@ -111,8 +111,11 @@ class Sts:
                        f'CardInfo%5Bissunce_user_id%5D=&'
                        f'CardInfo%5Bdefective_status%5D=&'
                        f'CardInfo%5Bform_producer%5D=&form=30')
-            status = chrome.find_elements(By.TAG_NAME, 'tr')[2].text.split(' ')[1]
-            print(f'{status} - {user_id} - {base_ids[iter_id]}')
+            try:
+                status = chrome.find_elements(By.TAG_NAME, 'tr')[2].text.split(' ')[1]
+                print(f'{status} - {user_id} - {base_ids[iter_id]}')
+            except:
+                print(f'{user_id} не найден')
             iter_id += 1
         return
 
@@ -140,23 +143,23 @@ def base_json_to_dict(input_json):
 
 
 if __name__ == '__main__':
-    # for r in range(len([*user_login_password.find({})])):
-    #     sts = Sts()
-    #     user = [*user_login_password.find({})][r]
-    #     user_item = [*discharge.find({'id_sts_usr': {'$eq': user['_id']}})]
-    #     if sts.auth(user['user'], user['password']):
-    #         continue
-    #     for number in range(len(user_item)):
-    #         item = user_item[number]
-    #         print(item['id_sts'])
-    #         sts.load(item['id_sts'], item['link'])
-    #     sts.close()
-    dict_user = base_json_to_dict(input_file)
-    for user in list(dict_user.keys()):
-        user_login = [*user_login_password.find({'user': user})]
-        list_id_sts = dict_user[user][0]
-        list_id = dict_user[user][1]
+    for r in range(len([*user_login_password.find({})])):
         sts = Sts()
-        sts.auth(user_login[0]['user'], user_login[0]['password'])
-        sts.check_card(list_id_sts, list_id)
+        user = [*user_login_password.find({})][r]
+        user_item = [*discharge.find({'id_sts_usr': {'$eq': user['_id']}})]
+        if sts.auth(user['user'], user['password']):
+            continue
+        for number in range(len(user_item)):
+            item = user_item[number]
+            print(item['id_sts'])
+            sts.load(item['id_sts'], item['link'])
         sts.close()
+    # dict_user = base_json_to_dict(input_file)
+    # for user in list(dict_user.keys()):
+    #     user_login = [*user_login_password.find({'user': user})]
+    #     list_id_sts = dict_user[user][0]
+    #     list_id = dict_user[user][1]
+    #     sts = Sts()
+    #     sts.auth(user_login[0]['user'], user_login[0]['password'])
+    #     sts.check_card(list_id_sts, list_id)
+    #     sts.close()

@@ -3,6 +3,7 @@ import datetime
 import pymongo
 import os
 from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
 
 client = pymongo.MongoClient('localhost', 27017)
 base = client['sts_db']
@@ -17,6 +18,7 @@ class Sts:
     if not (os.path.isdir(download)):
         os.mkdir(download)
     result = []
+    headers = {'User-Agent': UserAgent().chrome}
 
     def auth(self, login, password):            # Авторизация на сайте СТС
         params = {'_csrf': '',
@@ -27,41 +29,27 @@ class Sts:
                   }
         session = self.session
         url = self.url + 'private/default/login'
-        page = session.get(url)
+        page = session.get(url, headers=self.headers)
         soup = BeautifulSoup(page.text, 'html.parser')
         csrf = str(soup.find('input'))[-59:-3]
         params.update({'_csrf': csrf})
-        session.post(url, params)
+        session.post(url, params, headers=self.headers)
         self.result = []
         print(login, password)
-        # self.notify()           # Проход по уведомлениям
         return
-
-    # def notify(self):
-    #     url = self.url + 'private/default/index'
-    #     page = self.session.get(url)
-    #     soup = BeautifulSoup(page.text, 'html.parser')
-    #     ntfy = str(soup.find_all('div', {'id': 'mn'}))      # Находим блок с уведомлением
-    #     a = str(BeautifulSoup(ntfy, 'html.parser').find('a', {'data-id': True}))[66:69]     # ИД уведомления
-    #     if ntfy != 'None':
-    #         print('Уведомление')
-    #         m_id = {'messageId': a}
-    #         self.session.post(self.url + 'private/messages/read/', data=m_id)
-    #         print(a)
-    #         return
-    #     print(a)
-    #     return
 
     def take(self, dis=discharge):
         # Получение данных из СТС
         session = self.session
-        page = session.get(self.url + f'private/cards-issue/list?form=30&per-page=100&page=1')
+        page = session.get(self.url + f'private/cards-issue/list?form=30&per-page=100&page=1',
+                           headers=self.headers)
         check = BeautifulSoup(page.text, 'html.parser')
         check_str = str(check.find_all('div', class_='summary'))
         count = int(BeautifulSoup(check_str, 'html.parser').get_text()[-4:-2].strip())
         page_count = (count // 100) + 2
         for page_number in range(1, page_count):
-            page = session.get(self.url + f'private/cards-issue/list?form=30&per-page=100&page={page_number}')
+            page = session.get(self.url + f'private/cards-issue/list?form=30&per-page=100&page={page_number}',
+                               headers=self.headers)
             soup = BeautifulSoup(page.text, 'html.parser')
             for td in soup.find_all('tr'):
                 href = self.url + str(td.find('a', class_="btn"))[87:125]
@@ -73,7 +61,7 @@ class Sts:
                     continue
                 info.pop(-1)
                 time = datetime.datetime.now()
-                pdf = session.get(href)
+                pdf = session.get(href, headers=self.headers)
                 if not (os.path.isdir(self.download + str(time)[0:10])):
                     os.mkdir(self.download + str(time)[0:10])
                 href2 = f'{self.download}{str(time)[0:10]}/{info[3]}.pdf'
@@ -108,7 +96,7 @@ class Sts:
     def close(self):
         # Завершение сессии пользователя
         self.session.cookies.clear_session_cookies()
-        self.session.get(self.url + 'private/default/logout')
+        self.session.get(self.url + 'private/default/logout', headers=self.headers)
         return
 
 
